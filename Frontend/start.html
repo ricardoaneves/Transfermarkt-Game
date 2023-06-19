@@ -4,18 +4,48 @@
     <title>Transfermarkt Game</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
+<style>
+    * { background: #454545; color: #a9a9a9; }
+</style>
 <body>
     <input type="text" id="myInput">
     <button onclick="sendPlayer()">Click Me</button>
+    <input id="user_input" type="text" name="product"/>
+        <datalist id="productName">
+    </datalist>
+    <div>
+        <span id="players"></span>
+        <span id="output"></span>
+    </div>
 
     <script>
+        window.addEventListener("load", init);
+        document.getElementById("user_input").addEventListener( "input", _ => {
+            if( document.getElementById("user_input").value.length >= 3 )
+            document.getElementById("user_input").setAttribute( "list", "productName" );
+            else
+            document.getElementById("user_input").removeAttribute( "list" );
+        });
+        function init(){
+            axios.get('http://127.0.0.1:3000/start')
+                .then(function(response){
+                    document.getElementById("players").innerText = response.data;
+                })
+            axios.get('http://127.0.0.1:3000/players')
+                .then(function(response){
+                    array_to_options(response.data);
+                });
+        }
+        function array_to_options( arr ){
+            document.getElementById("productName").innerHTML = arr.map( v => `<option value="${v}">${v}</option>` ).join( "\n" );
+        }
         function sendPlayer(){
 
             var name = document.getElementById("myInput").value;
             axios.get('http://127.0.0.1:3000/player', {headers:{name:name}})
-                .then(function(response) {
+                .then(function(response){
                     console.log(response.data);
-                    alert("Response: " + response.data);
+                    document.getElementById("output").innerText += '\n' + response.data[0].name;
                 })
                 .catch(function(error) {
                     console.error(error);
