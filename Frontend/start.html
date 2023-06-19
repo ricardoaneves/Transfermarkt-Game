@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transfermarkt Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <input type="text" id="myInput">
+    <button onclick="sendPlayer()">Click Me</button>
+
+    <script>
+        function sendPlayer(){
+
+            var name = document.getElementById("myInput").value;
+            axios.get('http://127.0.0.1:3000/player', {headers:{name:name}})
+                .then(function(response) {
+                    console.log(response.data);
+                    alert("Response: " + response.data);
+                })
+                .catch(function(error) {
+                    console.error(error);
+                    alert("An error occurred. Please try again.");
+                });
+
+        }
+    </script>
+</body>
+</html>

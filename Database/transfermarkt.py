@@ -73,7 +73,7 @@ def get_players(team_urls):
             a = cell.find_all('a', href=True)
             name = a[0].text.strip()
             player_url = 'https://transfermarkt.pt' + a[0]['href']
-            id = url.split("/")[-1]
+            id = player_url.split("/")[-1]
             player = {}
             player['id'] = id
             player['name'] = name
@@ -125,7 +125,7 @@ def main():
     # removeOldFiles()
     team_urls = []
     team_urls.extend(get_Liga_Portugal())
-    # team_urls.extend(get_Premier_League())
+    team_urls.extend(get_Premier_League())
 
     print('How many teams?', len(team_urls), 'teams parsed!')
 
