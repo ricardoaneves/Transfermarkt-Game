@@ -54,6 +54,25 @@ def get_Premier_League():
 
     return team_urls
 
+def get_LaLiga():
+
+    print('get_LaLiga()')
+    print('Getting LaLiga players from transfermarkt.pt')
+
+    league_url = 'https://www.transfermarkt.pt/laliga/startseite/wettbewerb/ES1'
+    tree = requests.get(league_url, headers=headers, cookies={'__hs_opt_out': 'no'})
+    soup = BeautifulSoup(tree.content, 'html.parser')
+    table = soup.find('table', {'class':'items'})
+    
+    team_urls = []
+    for row in table.tbody.find_all('tr'):
+        cells = row.find_all('td')
+        a = cells[2].find_all('a', href=True)
+        team_url = 'https://www.transfermarkt.pt' + a[0]['href']
+        team_urls.append(team_url)
+
+    return team_urls
+
 def get_players(team_urls):
 
     print('get_players()')
@@ -114,7 +133,7 @@ def build_csv(database):
 
     keys = set().union(*(d.keys() for d in database))
 
-    with open('transfermarkt.csv', 'w', encoding='utf-8-sig', newline='') as file:
+    with open('transfermarkt.csv', 'a', encoding='utf-8-sig', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=keys)
         writer.writeheader()
         writer.writerows(database)
@@ -124,8 +143,9 @@ def main():
     print('transfermarkt()')
     # removeOldFiles()
     team_urls = []
-    team_urls.extend(get_Liga_Portugal())
-    team_urls.extend(get_Premier_League())
+    #team_urls.extend(get_Liga_Portugal())
+    #team_urls.extend(get_Premier_League())
+    team_urls.extend(get_LaLiga())
 
     print('How many teams?', len(team_urls), 'teams parsed!')
 

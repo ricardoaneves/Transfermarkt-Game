@@ -5,53 +5,100 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <style>
-    * { background: #454545; color: #a9a9a9; }
+    * {background: #2c2c2c; color: #a9a9a9; font-family: Arial, Helvetica, sans-serif;}
 </style>
 <body>
-    <input type="text" id="myInput">
-    <button onclick="sendPlayer()">Click Me</button>
-    <input id="user_input" type="text" name="product"/>
-        <datalist id="productName">
-    </datalist>
     <div>
-        <span id="players"></span>
-        <span id="output"></span>
+        <h1 id="first">Transfermarkt Game</h1>
+        <h1 id="success" style="color:rgb(34, 248, 34); display:none">Transfermarkt Game</h1>
+        <span id="playerStart"></span>
+        <p>
+        <span id="inputs"/>
+        </p>
+        <div id="inputaço">
+            <input id="user_input" type="text" name="product"/>
+            <datalist id="productName">
+            </datalist>
+            <button onclick="sendPlayer()">Send</button>
+        </div>
+        <p/>
+        <span id="playerEnd"></span>
+        <p/>
+        <button id="fds" onClick="window.location.reload();">Outro</button>
     </div>
 
     <script>
+        var playerStart = undefined;
+        var playerEnd = undefined;
+        var inputs = '';
+        var inputsIDs = [];
+
         window.addEventListener("load", init);
-        document.getElementById("user_input").addEventListener( "input", _ => {
-            if( document.getElementById("user_input").value.length >= 3 )
-            document.getElementById("user_input").setAttribute( "list", "productName" );
+
+        document.getElementById("user_input").addEventListener("input", _ =>{
+            if(document.getElementById("user_input").value.length >= 3)
+                document.getElementById("user_input").setAttribute("list", "productName");
             else
-            document.getElementById("user_input").removeAttribute( "list" );
+                document.getElementById("user_input").removeAttribute("list");
         });
+
         function init(){
-            axios.get('http://127.0.0.1:3000/start')
+            axios.get('http://127.0.0.1:3000/player/start')
                 .then(function(response){
-                    document.getElementById("players").innerText = response.data;
-                })
+                    playerStart = response.data;
+                    inputsIDs.push(playerStart.id);
+                    document.getElementById("playerStart").innerText = playerStart.name;
+                });
+            axios.get('http://127.0.0.1:3000/player/end')
+                .then(function(response){
+                    playerEnd = response.data;
+                    document.getElementById("playerEnd").innerText = playerEnd.name;
+                });
             axios.get('http://127.0.0.1:3000/players')
                 .then(function(response){
-                    array_to_options(response.data);
+                    arrayToOptions(response.data);
                 });
         }
-        function array_to_options( arr ){
-            document.getElementById("productName").innerHTML = arr.map( v => `<option value="${v}">${v}</option>` ).join( "\n" );
-        }
-        function sendPlayer(){
 
-            var name = document.getElementById("myInput").value;
-            axios.get('http://127.0.0.1:3000/player', {headers:{name:name}})
+        function arrayToOptions( arr ){
+            document.getElementById("productName").innerHTML = arr.map( v => `<option value="${v}">${v}</option>` ).join("\n");
+        }
+
+        function sendPlayer(){
+            var name = document.getElementById("user_input").value;
+            var idBefore = inputsIDs[inputsIDs.length-1];
+            axios.get('http://127.0.0.1:3000/input', {headers:{name:name, idBefore:idBefore}})
                 .then(function(response){
-                    console.log(response.data);
-                    document.getElementById("output").innerText += '\n' + response.data[0].name;
+                    if(response.data.teammates == false){
+                        inputs += `<p><s><span>${response.data.name}</span></s></p>`;
+                        document.getElementById("inputs").innerHTML = inputs;
+                    }
+                    else{
+                        inputs += `<p><span>${response.data.name}</span></p>`;
+                        inputsIDs.push(response.data.id);
+                        document.getElementById("inputs").innerHTML = inputs;
+                        var idCurrent = inputsIDs[inputsIDs.length-1];
+                        document.getElementById("user_input").value = '';
+                        axios.get('http://127.0.0.1:3000/end', {headers:{idCurrent:idCurrent, playerEnd:playerEnd.id}})
+                            .then(function(response){
+                                console.log('END?', response.data)
+                                if(response.data == true){
+                                    document.getElementById('inputaço').style.display = 'none';
+                                    document.getElementById('fds').style.display = 'block';
+                                    document.getElementById('first').style.display = 'none';
+                                    document.getElementById('success').style.display = 'block';
+                                }
+                            })
+                            .catch(function(error) {
+                                console.error(error);
+                                alert("An error occurred. Please try again.");
+                            });
+                    }
                 })
                 .catch(function(error) {
                     console.error(error);
                     alert("An error occurred. Please try again.");
                 });
-
         }
     </script>
 </body>
